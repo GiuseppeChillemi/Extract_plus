@@ -1,3 +1,42 @@
+# Documentation
+
+Red has a nice instrument to get columns of elements in a block and it is the `extract` command.  With it, you can process a block as a list of rows. The syntax of the commmand is:
+
+```
+EXTRACT series width
+```
+
+An example of the command is:
+
+```
+series: [
+	a1 b1 c1 
+	a2 b2 c2 
+	a3 b3 c3
+]
+extract series 3
+```
+
+Result:
+
+```
+[a1 a2 a3]
+```
+
+The command let you select a different column that the first one with the `/index`refinement
+
+```
+extract/index series 3 2
+```
+
+Will result in:
+
+```
+[b1 b2 b3]
+```
+
+You can't do anything else and this limits the coder a lot, as to have multiple columns is forced to use `foreach` loops, `foreach` + `compose/reduce`. So `EXTRACT+` has born!
+
 # Extract+
 
 It is your Swiss Army knife to process your data!
@@ -96,9 +135,33 @@ Result:
 
 Please note the `#no` keyword that instructs the DSL to not use the column 3 in the row but just for setting `a`
 
-## Quoting integers! and #no keyword
 
-As integers are part of the DSL, to insert an integer in row use `QUOTE`
+
+## Auto quoting:
+
+If the following elements are found in the row description, they will be automatically quoted:
+
+* `Word!`
+* `Lit-Word`
+* `Path!`
+* `Lit-Path!`
+* `Function!`
+
+
+
+## Quoting DSL elements
+
+`Paren!`
+
+`Set-Word!`
+
+`#no` keyword
+
+`integer!`s 
+
+
+
+As they are part of the DSL, they must be preceded by `QUOTE` to be used
 
 ```
 series: [
@@ -133,6 +196,22 @@ You can do the same with the `#no` keyword and any further keyword of the DSL
 Actually the code relies on:
 
 `for-skip` and `quoty` functions included in the repository. 
+
+# ToBeDone:
+
+* Filtering data based on source and built row
+
+* Init code
+
+* Pre/post row code
+
+* Better documentation
+
+* More tests and examples
+
+  
+
+
 
 
 
