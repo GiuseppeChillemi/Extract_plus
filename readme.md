@@ -1,4 +1,6 @@
-# Documentation
+# Introduction
+
+## Why Extract+ ?
 
 Red has a nice instrument to get columns of elements in a block and it is the `extract` command.  With it, you can process a block as a list of rows. The syntax of the commmand is:
 
@@ -35,7 +37,9 @@ Will result in:
 [b1 b2 b3]
 ```
 
-You can't do anything else and this limits the coder a lot, as to have multiple columns is forced to use `foreach` loops, `foreach` + `compose/reduce`. So `EXTRACT+` has born!
+You can't do anything else and this limits the coder a lot, as to have multiple columns is forced to use `foreach` loops, `foreach` + `compose/reduce`. 
+
+##### So `EXTRACT+` has born!
 
 # Extract+
 
