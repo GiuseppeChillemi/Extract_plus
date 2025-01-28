@@ -1,25 +1,31 @@
 ## Extract+
 
-It is your first army knife to process your data!
+It is your Swiss Army knife to process your data!
 
-The principle is simple: instead of providing an additional column position to extract, pass a block rapresenting the target new ROW, where you can express multiple columns taken from the source, process and transform the data using a simple DLS
-
-
+The principle is simple: instead of providing an additional column position to extract, use a `block` rappresenting the target new ROW with a descriptive DSL. Its syntax is simple: you can express multiple source columns as `integer!`, use `set-words` to mark source columns and transform later the data using code in paren.
 
 Example:
 
 ```
-series: [a1 b1 c1 a2 b2 c2 a3 b3 c3]
+series: [
+	a1 b1 c1 
+	a2 b2 c2 
+	a3 b3 c3
+]
 extract+ series 3 [1 3]
 ```
 
 This will produce:
 
 ```
-[a1 c1 a2 c2 a3 c3]
+[
+	a1 c1 
+	a2 c2 
+	a3 c3
+]
 ```
 
-But the principle is different from regular `extract`. While with it you can provide only columns, here you can provide different data to build each row.
+But the principle is different from regular `extract`. While with it you can provide only columns, you can provide different data to `extract+` for building each row.
 
 The command:
 
@@ -30,7 +36,11 @@ extract+ series 3 [1 "Red" 3]
 Will create:
 
 ```
-[a1 "Red" c1 a2 "Red" c2 a3 "Red" c3]
+[
+	a1 "Red" c1 
+	a2 "Red" c2 
+	a3 "Red" c3
+]
 ```
 
 This is already a great change, letting you mix original values with new ones but it does not end here.
@@ -41,7 +51,7 @@ The DSL accepts `set-word!` to assign the column, and you can use it to referenc
 extract+ series 3 [a: 1 3 (rejoin ["Column value: " a])]
 ```
 
-Result
+Result:
 
 ```
 [
@@ -51,20 +61,18 @@ Result
 ]
 ```
 
-Now let's do some more challeging: get values from a container
-
-
+Now let's do some more challeging: getting values from a container
 
 ```
 series: [
-	a1 b1 #[x: 10 y: 20] 
-	a2 b2 #[x: 30 y: 40]
-	a3 b3 #[x: 50 y: 60]
+	a1 b1 #[xx: 10 y: 20] 
+	a2 b2 #[xx: 30 y: 40]
+	a3 b3 #[xx: 50 y: 60]
 ]
 
 ```
 
-We want the first colunm ad `X` value from the map:
+We want the first colunm ad `XX` value from the map:
 
 ```
 extract+ series 3 [1 #no a: 3 (a/xx)]
