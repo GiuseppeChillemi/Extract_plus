@@ -213,6 +213,14 @@ Actually the code relies on:
 
 * More tests and examples
 
+* In-Row Sub series creation
+
+* External Sub series creation
+
+* Commenting
+
+   
+
   
 
 
