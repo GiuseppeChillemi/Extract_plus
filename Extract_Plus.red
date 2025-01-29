@@ -9,6 +9,11 @@ Red [
 		Auxiliary code
 		Filtering
 	}
+	Version: 1.3
+	Log: {
+		Avoid recreting the columns context (row-proto is actually static)
+		Avoid recreating "to-delete" (It is static too)
+	}
 ]
 
 #include %for-skip.red
@@ -27,6 +32,7 @@ extract+: func [
 	ctx
 	ctx-proto
 	do-not-pick?
+	proto-created?
 	ln
 	pos
 	code
@@ -54,12 +60,13 @@ extract+: func [
 			|
 
 					opt [remove #no (do-not-pick?: true)]
-					any [set key set-word! (append ctx-proto key)] 
+					any [not if (proto-created?) set key set-word! (append ctx-proto key) | set-word!] ;attento alle sequenze
 					
 					change only [
 						[set pos integer! | set code paren!]
-						(either do-not-pick? [ln: ln + 1 append to-delete ln] [ln: ln + 1])					
+						(either do-not-pick? [ln: ln + 1 if not proto-created? [append to-delete ln]] [ln: ln + 1])					
 					]
+
 					
 					(case [pos [quoty pick data pos] code [quoty code]])
 					(pos: code: none do-not-pick?: false)
@@ -76,22 +83,25 @@ extract+: func [
 		
 			end
 		]
-		
-		
-		ln: 0
-		if (length? unique ctx-proto) <> length? ctx-proto [do make error! rejoin ["Duplicated set-words!" mold ctx-proto]]
-		
-		ctx: make object! append ctx-proto none
+
+		either not proto-created? [
+			if (length? unique ctx-proto) <> length? ctx-proto [do make error! rejoin ["Duplicated set-words!" mold ctx-proto]]		
+			ctx: make object! append ctx-proto none
+			proto-created?: true
+
+		] [
+			set ctx none
+		]
+					
 		bind row-proto-copy ctx
 		row: reduce row-proto-copy 
 		forall to-delete [
 			remove at row to-delete/1
 		]		
 		append out-data row
-		
+
+		ln: 0		
 		row-proto-copy: copy row-proto
-		ctx-proto: copy []
-		to-delete: copy []
 	]
 	out-data
 ]
