@@ -28,6 +28,8 @@ extract+: func [
 	ctx-proto
 	do-not-pick?
 	ln
+	pos
+	code
 	value
 	s
 	out-data
