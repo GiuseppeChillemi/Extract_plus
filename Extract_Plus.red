@@ -22,6 +22,7 @@ extract+: func [
 	/local
 	to-delete
 	row
+	row-proto-copy
 	idx
 	ctx
 	ctx-proto
