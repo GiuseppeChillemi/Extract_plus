@@ -212,15 +212,21 @@ They can access the `CTX-USER` context where some internal elements are availabl
 An example usage:
 
 ``` 
-	extract+/where series 3 [quote 1 1 #no a: 3 (a/xx)] [
-		either ctx-usr/data/1 = 'a2 [false] [true]
-	] 
-	[
-		either ctx-usr/row/3 = 50 [false] [true]
-	]
+series: [
+    a1 b1 #[xx: 10 yy: 20] 
+    a2 b2 #[xx: 30 yy: 40]
+    a3 b3 #[xx: 50 yy: 60]
+]
+
+extract+/where series 3 [quote 1 1 #no a: 3 (a/xx)] [
+    either ctx-usr/data/1 = 'a2 [false] [true]
+] 
+[
+    either ctx-usr/row/3 = 50 [false] [true]
+]
 ```
 
-It will produce:
+This code will produce:
 
 ```
 [1 a1 10]
