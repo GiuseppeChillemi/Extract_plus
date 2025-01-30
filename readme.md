@@ -193,7 +193,44 @@ Generates
 
 You can do the same with the `#no` keyword and any further keyword of the DSL
 
+## Filtering
 
+Filtering has been implemented using a `/WHERE` refinement
+
+You need to provide 2 code blocks as argument:
+
+`where-before`
+
+`where-after`
+
+They can access the `CTX-USER` context where some internal elements are available to your code.
+
+`DATA` is the row at current position. You can use it to access it and do you test. If you return `true` as last element, the data will be processed, otherwise `false` will skip to the next row.  It's content is valid either on `where-before` but also on`where-after` 
+
+`ROW` is valid only on `where-after` and represents the data row created by the dialect, an instant before writing it to the final container. As before, returning `true` it will be accepted, otherwhise `false` will skip it.
+
+An example usage:
+
+``` 
+	extract+/where series 3 [quote 1 1 #no a: 3 (a/xx)] [
+		either ctx-usr/data/1 = 'a2 [false] [true]
+	] 
+	[
+		either ctx-usr/row/3 = 50 [false] [true]
+	]
+```
+
+It will produce:
+
+```
+[1 a1 10]
+```
+
+This code will skip rows where the starting column `1` content is `a2` and final row column `3` value is `50`
+
+### CTX-USER
+
+(to be written)
 
 ## Support functions
 
@@ -203,11 +240,9 @@ Actually the code relies on:
 
 # ToBeDone:
 
-* Filtering data based on source and built row
+* Filtering data based on source and built row (DONE)
 
 * Init code
-
-* Pre/post row code
 
 * Better documentation
 

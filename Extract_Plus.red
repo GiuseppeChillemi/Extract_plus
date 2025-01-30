@@ -233,7 +233,7 @@ extract+: func [
 	unset 'series
 ]
 
-;#assert [
+#assert [
 	series: [
 		a1 b1 #[xx: 10 yy: 20] 
 		a2 b2 #[xx: 30 yy: 40]
@@ -241,13 +241,14 @@ extract+: func [
 	]	
 	[a1 10 a2 30 a3 50] = extract+ series 3 [quote 1 1 #no a: 3 (a/xx)]
 	unset 'series
-;]
-series: [
-	a1 b1 #[xx: 10 yy: 20] 
-	a2 b2 #[xx: 30 yy: 40]
-	a3 b3 #[xx: 50 yy: 60]
 ]
+
 #ssert [
+	series: [
+		a1 b1 #[xx: 10 yy: 20] 
+		a2 b2 #[xx: 30 yy: 40]
+		a3 b3 #[xx: 50 yy: 60]
+	]
 	[1 a1 10] = extract+/where series 3 [quote 1 1 #no a: 3 (a/xx)] [
 		either ctx-usr/data/1 = 'a2 [false] [true]
 	] 
