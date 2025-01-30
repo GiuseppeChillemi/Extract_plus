@@ -19,11 +19,6 @@ Red [
 	Notes: {
 		Introduction: https://matrix.to/#/!vizjfgYzCOUHBNcXdY:gitter.im/$43xXyf_uOOpiuQgCVwXffHtDCKHKLpvX9QUPmr-XMp0?via=gitter.im&via=matrix.org&via=tchncs.de
 	}
-	Version: 1.3
-	Log: {
-		Avoid recreting the columns context (row-proto is actually static)
-		Avoid recreating "to-delete" (It is static too)
-	}
 ]
 
 #include %for-skip.red
@@ -38,17 +33,6 @@ extract+: func [
 	where-before
 	where-after
 	/local
-<<<<<<< HEAD
-	to-delete
-	row
-	row-proto-copy
-	idx
-	ctx
-	ctx-proto
-	do-not-pick?
-	proto-created?
-	ln
-=======
 	;--- Use by forall, can't be removed	
 	to-delete					;The positions to delete
 	
@@ -64,7 +48,6 @@ extract+: func [
 	ln
 
 	;---Parse variables, can't be removed and put in context, only synced
->>>>>>> Pre-Publish
 	pos
 	code
 	value
@@ -145,18 +128,13 @@ extract+: func [
 				|
 
 					opt [remove #no (do-not-pick?: true)]
-<<<<<<< HEAD
-					any [not if (proto-created?) set key set-word! (append ctx-proto key) | set-word!] ;attento alle sequenze
-=======
 					any [not if (proto-created?) set key set-word! (append ctx-proto key) | set-word!]
->>>>>>> Pre-Publish
 					
 					change only [
 						[set pos integer! | set code paren!]
 						(either do-not-pick? [ln: ln + 1 if not proto-created? [append to-delete ln]] [ln: ln + 1])					
 					]
-
-					
+		
 					(case [pos [quoty pick data pos] code [quoty code]])
 					(pos: code: none do-not-pick?: false)
 					
@@ -171,27 +149,6 @@ extract+: func [
 			]
 			end
 		]
-<<<<<<< HEAD
-
-		either not proto-created? [
-			if (length? unique ctx-proto) <> length? ctx-proto [do make error! rejoin ["Duplicated set-words!" mold ctx-proto]]		
-			ctx: make object! append ctx-proto none
-			proto-created?: true
-
-		] [
-			set ctx none
-		]
-					
-		bind row-proto-copy ctx
-		row: reduce row-proto-copy 
-		forall to-delete [
-			remove at row to-delete/1
-		]		
-		append out-data row
-
-		ln: 0		
-		row-proto-copy: copy row-proto
-=======
 		
 			ln: 0
 			either not proto-created? [
@@ -225,7 +182,6 @@ extract+: func [
 			
 			row-proto-copy: copy row-proto
 		]
->>>>>>> Pre-Publish
 	]
 	out-data
 ]
