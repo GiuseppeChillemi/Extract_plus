@@ -234,6 +234,66 @@ This code will produce:
 
 This code will skip rows where the starting column `1` content is `a2` and final row column `3` value is `50`
 
+### Columns binding
+
+Is `/where` refinement is active, bind the `where-after` block to the columns context. You will be able to access all the elements you have assigned a letter, even those with the `#no` keyword
+
+
+
+```
+series: [
+    a1 b1 #[xx: 10 yy: 20] 
+    a2 b2 #[xx: 30 yy: 40]
+    a3 b3 #[xx: 50 yy: 60]
+]
+extract+/where series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
+    either ctx-usr/data/1 = 'a2 [false] [true] 
+] 
+[
+    either all [a = #[xx: 50 yy: 60] b = 50] [false] [true]
+]
+unset 'series
+```
+
+
+
+The second code block (`where-after`) has access to the columns defined in the proto. So even if column 3 is not present in the final row, it could be accessed using the `a` word and checked, gaining access to the original `map!` values. Also, with `b` you will have access to the computed code `(a/xx)` result.
+
+So when `a = #[xx: 50 yy: 60]` and `b = 50` then row will be filtered out from the result as the code is: `either all [a = #[xx: 50 yy: 60] b = 50] [false] [true]`
+
+As there is a `where-before` condition, which is triggered in the second row  `either ctx-usr/data/1 = 'a2 [false] [true] `, the final result will include only 1 row:
+
+`[1 a1 10]`
+
+This example has negative filtering focus. If you want to include elements, simply switch `true` and `false` position in the either blocks:
+
+```
+series: [
+    a1 b1 #[xx: 10 yy: 20] 
+    a2 b2 #[xx: 30 yy: 40]
+    a3 b3 #[xx: 50 yy: 60]
+]
+[1 a1 10] = extract+/where series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
+    true
+] 
+[
+    either all [a = #[xx: 50 yy: 60] b = 50] [true] [false] 
+]
+unset 'series
+```
+
+The first check always return `true`, so the row is appended only if the second check code returns true too.
+
+Result:
+
+```
+[1 a3 50]
+```
+
+As only the third row has all the requisites in `all` block to return true.
+
+
+
 ### CTX-USER
 
 (to be written)
