@@ -10,11 +10,14 @@ Red [
 		* Filtering
 		Review code filtering arguments
 	}
-	Version: 2.0
+	Version: 2.1
 	Log: {
-		Added row filtering
-		Avoid recreting the columns context (row-proto is actually static)
-		Avoid recreating "to-delete" (It is static too)
+		FEAT: Now where-after can access columns via assigned words in proto
+		FIX: Small fixes to where condition checks
+		FIX: Included #assert. The good times where all tests had succes have now ended! :D	
+		FEAT: Added row filtering
+		OPTIMIZATION: Avoid recreting the columns context (row-proto is actually static)
+		OPTIMIZATION: Avoid recreating "to-delete" (It is static too)
 	}
 	Notes: {
 		Introduction: https://matrix.to/#/!vizjfgYzCOUHBNcXdY:gitter.im/$43xXyf_uOOpiuQgCVwXffHtDCKHKLpvX9QUPmr-XMp0?via=gitter.im&via=matrix.org&via=tchncs.de
@@ -23,6 +26,7 @@ Red [
 
 #include %for-skip.red
 #include %quoty.red
+;#include %../common/assert.red	;--Uncomment and modify path to include your #assert
 
 extract+: func [
 	"Extract replacement with DSL"
@@ -33,7 +37,7 @@ extract+: func [
 	where-before
 	where-after
 	/local
-	;--- Use by forall, can't be removed	
+	;--- Used by forall, can't be put in a context
 	to-delete					;The positions to delete
 	
 	row								;Final data Row
@@ -42,10 +46,15 @@ extract+: func [
 	ctx-proto					
 	ctx-usr						;the context with temporary elements
 	ctx-temp
+	ln
+	
+	;--- Flags
+	before-result
+	after-result
 	do-not-pick?
 	proto-created?
+	user-code-bound?
 	keep?
-	ln
 
 	;---Parse variables, can't be removed and put in context, only synced
 	pos
@@ -59,7 +68,15 @@ extract+: func [
 ] [
 
 	;--- TBD:
-		;TBD: standard extract mode
+		;Standard extract mode
+		;Better manage false true none in WHERE condition
+		;Make both WHERE checks 2 refinements?
+		;Uncouple data looping from structure creations;
+		;Analyze if you can create a code generator
+		;Analyze is you can set columns after deletion deletion phase
+		;Original Columns DATA accessible on DATA via where-before and via CTX on where-after
+		;Analize if LAST-ROW access is possible on where-before
+
 		
 	;--- code ideas:	
 		;custom parse?
@@ -77,6 +94,7 @@ extract+: func [
 	ctx-proto: copy []
 	proto-created?: false
 	keep?: true
+	user-code-bound?: false
 	
 	ctx-temp: make object! [
 		ctx-usr: make object! [
@@ -161,19 +179,27 @@ extract+: func [
 				set ctx none
 			]
 			
-			bind row-proto-copy ctx
+			bind row-proto-copy ctx	;--- It is needed at each recurrence
+			
 			row: reduce row-proto-copy 
+			
+			
+			
 			forall to-delete [
 				remove at row to-delete/1
 			]
 
 			
 			either where [
+				if not user-code-bound? [
+					bind where-after ctx 
+					user-code-bound?: true
+				]
 				ctx-usr/row: row
-				keep?: attempt [do where-after]
+				after-result: attempt [do where-after]
 				case [
-					none? keep? [do make error! "Where-after code failed!: "]
-					keep? = true [append out-data row]
+					none? after-result [do make error! "Where-after code failed!: "]
+					all [keep? = true after-result] [append out-data row]
 				]
 				keep?: none
 			] [
@@ -239,11 +265,11 @@ extract+: func [
 		a2 b2 #[xx: 30 yy: 40]
 		a3 b3 #[xx: 50 yy: 60]
 	]	
-	[a1 10 a2 30 a3 50] = extract+ series 3 [quote 1 1 #no a: 3 (a/xx)]
+	[1 a1 10 1 a2 30 1 a3 50] = extract+ series 3 [quote 1 1 #no a: 3 (a/xx)]
 	unset 'series
 ]
 
-#ssert [
+#assert [
 	series: [
 		a1 b1 #[xx: 10 yy: 20] 
 		a2 b2 #[xx: 30 yy: 40]
@@ -257,3 +283,34 @@ extract+: func [
 	]
 	unset 'series
 ]
+
+#assert [
+	series: [
+		a1 b1 #[xx: 10 yy: 20] 
+		a2 b2 #[xx: 30 yy: 40]
+		a3 b3 #[xx: 50 yy: 60]
+	]
+	[1 a1 10 ] = extract+/where series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
+		either ctx-usr/data/1 = 'a2 [false] [true] 
+	] 
+	[
+		either all [a = #[xx: 50 yy: 60] b = 50] [false] [true]
+	]
+	unset 'series
+]
+
+#assert [
+	series: [
+		a1 b1 #[xx: 10 yy: 20] 
+		a2 b2 #[xx: 30 yy: 40]
+		a3 b3 #[xx: 50 yy: 60]
+	]
+	[1 a3 50] = extract+/where series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
+		true
+	] 
+	[
+		either all [a = #[xx: 50 yy: 60] b = 50] [true] [false] 
+	]
+	unset 'series
+]
+
