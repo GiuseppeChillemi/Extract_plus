@@ -195,9 +195,9 @@ You can do the same with the `#no` keyword and any further keyword of the DSL
 
 ## Filtering
 
-Filtering has been implemented using a `/WHERE` refinement
+Filtering has been implemented using a `/before` and `/after` refinements
 
-You need to provide 2 code blocks as argument:
+You  could provide 2 code blocks as argument, one for each:
 
 `where-before`
 
@@ -218,7 +218,7 @@ series: [
     a3 b3 #[xx: 50 yy: 60]
 ]
 
-extract+/where series 3 [quote 1 1 #no a: 3 (a/xx)] [
+extract+/before/after series 3 [quote 1 1 #no a: 3 (a/xx)] [
     either ctx-usr/data/1 = 'a2 [false] [true]
 ] 
 [
@@ -236,7 +236,7 @@ This code will skip rows where the starting column `1` content is `a2` and final
 
 ### Columns binding
 
-Is `/where` refinement is active, bind the `where-after` block to the columns context. You will be able to access all the elements you have assigned a letter, even those with the `#no` keyword
+Is `/after` refinement is active, binds the `where-after` block to the columns context. You will be able to access all the elements you have assigned a letter, even those with the `#no` keyword
 
 
 
@@ -246,13 +246,12 @@ series: [
     a2 b2 #[xx: 30 yy: 40]
     a3 b3 #[xx: 50 yy: 60]
 ]
-extract+/where series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
+extract+/before/after series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
     either ctx-usr/data/1 = 'a2 [false] [true] 
 ] 
 [
     either all [a = #[xx: 50 yy: 60] b = 50] [false] [true]
 ]
-unset 'series
 ```
 
 
@@ -273,16 +272,10 @@ series: [
     a2 b2 #[xx: 30 yy: 40]
     a3 b3 #[xx: 50 yy: 60]
 ]
-[1 a1 10] = extract+/where series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
-    true
-] 
-[
+[1 a1 10] = extract+/after series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
     either all [a = #[xx: 50 yy: 60] b = 50] [true] [false] 
 ]
-unset 'series
 ```
-
-The first check always return `true`, so the row is appended only if the second check code returns true too.
 
 Result:
 

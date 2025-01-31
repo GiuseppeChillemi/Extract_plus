@@ -2,7 +2,7 @@ Red [
 	Title: "Extract+"
 	Description: "DSL for extracting data from blocks and build new rows"
 	Author: "Giuseppe Chillemi"
-	date: 30/01/2025
+	date: 31/01/2025
 	Copyright: "To be choosen"
 	Todo: {
 		column datatype verification
@@ -10,8 +10,9 @@ Red [
 		* Filtering
 		Review code filtering arguments
 	}
-	Version: 2.1
+	Version: 2.2
 	Log: {
+		CHANGE: Where is now split in 2 refinements /before and /after
 		FEAT: Now where-after can access columns via assigned words in proto
 		FIX: Small fixes to where condition checks
 		FIX: Included #assert. The good times where all tests had succes have now ended! :D	
@@ -26,15 +27,16 @@ Red [
 
 #include %for-skip.red
 #include %quoty.red
-;#include %../common/assert.red	;--Uncomment and modify path to include your #assert
+#include %../common/assert.red	;--Uncomment and modify path to include your #assert
 
 extract+: func [
 	"Extract replacement with DSL"
 	data [block!] "The data with rows of fixed size"
 	skip-size [integer!] "Size of each row"
 	row-proto [block!] "ROW proto with DSL" 
-	/where
+	/before
 	where-before
+	/after
 	where-after
 	/local
 	;--- Used by forall, can't be put in a context
@@ -62,12 +64,13 @@ extract+: func [
 	value
 	s									; Used to debug position
 
-	
+	;--- Return value
 	out-data
 
 ] [
 
 	;--- TBD:
+		;Implement all fields of CTX-USER
 		;Standard extract mode
 		;Better manage false true none in WHERE condition
 		;Make both WHERE checks 2 refinements?
@@ -76,6 +79,7 @@ extract+: func [
 		;Analyze is you can set columns after deletion deletion phase
 		;Original Columns DATA accessible on DATA via where-before and via CTX on where-after
 		;Analize if LAST-ROW access is possible on where-before
+		;1 element mode for block of blocks, block of maps
 
 		
 	;--- code ideas:	
@@ -93,7 +97,7 @@ extract+: func [
 	out-data: copy []
 	ctx-proto: copy []
 	proto-created?: false
-	keep?: true
+	keep?: true						;Starts true in case /before is inactive.
 	user-code-bound?: false
 	
 	ctx-temp: make object! [
@@ -120,18 +124,17 @@ extract+: func [
 	
 	ctx-usr: ctx-temp/ctx-usr
 		
-	case [
-		where [
-			bind where-before ctx-temp
-			bind where-after ctx-temp
-		]
+	case/all [
+		before [bind where-before ctx-temp]
+		after	[bind where-after ctx-temp]
 	]
+
 			
 	for-skip data skip-size [
 		
 		ctx-usr/data: data
 		
-		if where [
+		if before [
 			keep?: attempt [do where-before]
 			if none? keep? [do make error! "Where-Before code failed!: "]
 		] 
@@ -190,7 +193,7 @@ extract+: func [
 			]
 
 			
-			either where [
+			either after [
 				if not user-code-bound? [
 					bind where-after ctx 
 					user-code-bound?: true
@@ -201,7 +204,6 @@ extract+: func [
 					none? after-result [do make error! "Where-after code failed!: "]
 					all [keep? = true after-result] [append out-data row]
 				]
-				keep?: none
 			] [
 				append out-data row			
 			]
@@ -275,7 +277,7 @@ extract+: func [
 		a2 b2 #[xx: 30 yy: 40]
 		a3 b3 #[xx: 50 yy: 60]
 	]
-	[1 a1 10] = extract+/where series 3 [quote 1 1 #no a: 3 (a/xx)] [
+	[1 a1 10] = extract+/before/after series 3 [quote 1 1 #no a: 3 (a/xx)] [
 		either ctx-usr/data/1 = 'a2 [false] [true]
 	] 
 	[
@@ -290,7 +292,7 @@ extract+: func [
 		a2 b2 #[xx: 30 yy: 40]
 		a3 b3 #[xx: 50 yy: 60]
 	]
-	[1 a1 10 ] = extract+/where series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
+	[1 a1 10 ] = extract+/before/after series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
 		either ctx-usr/data/1 = 'a2 [false] [true] 
 	] 
 	[
@@ -305,7 +307,7 @@ extract+: func [
 		a2 b2 #[xx: 30 yy: 40]
 		a3 b3 #[xx: 50 yy: 60]
 	]
-	[1 a3 50] = extract+/where series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
+	[1 a3 50] = extract+/before/after series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
 		true
 	] 
 	[
@@ -314,3 +316,14 @@ extract+: func [
 	unset 'series
 ]
 
+#assert [
+	series: [
+		a1 b1 #[xx: 10 yy: 20] 
+		a2 b2 #[xx: 30 yy: 40]
+		a3 b3 #[xx: 50 yy: 60]
+	]
+	[1 a3 50] = extract+/after series 3 [quote 1 1 #no a: 3 b: (a/xx)] [
+		either all [a = #[xx: 50 yy: 60] b = 50] [true] [false] 
+	]
+	unset 'series
+]
