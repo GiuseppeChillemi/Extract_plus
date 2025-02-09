@@ -17,10 +17,11 @@ for-skip: func [
 	pos
 	;/local
 ] [
-	until [
+	;skip: salta
+	;pos: the positions inside the skip record
+	while [not tail? get target] [
 		do code
 		set target system/words/skip get target skip
-		tail? get target 
 	]
 ]
 
