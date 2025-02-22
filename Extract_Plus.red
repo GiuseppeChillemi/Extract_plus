@@ -2,7 +2,7 @@ Red [
 	Title: "Extract+"
 	Description: "DSL for extracting data from blocks and build new rows"
 	Author: "Giuseppe Chillemi"
-	date: 31/01/2025
+	date: 22/02/2025
 	Copyright: "To be choosen"
 	Todo: {
 		column datatype verification
@@ -10,8 +10,9 @@ Red [
 		* Filtering
 		Review code filtering arguments
 	}
-	Version: 2.2
+	Version: 2.3
 	Log: {
+		FIX: Remove column must be done in reverse
 		CHANGE: Where is now split in 2 refinements /before and /after
 		FEAT: Now where-after can access columns via assigned words in proto
 		FIX: Small fixes to where condition checks
@@ -70,6 +71,9 @@ extract+: func [
 ] [
 
 	;--- TBD:
+		;Manage NONE in code
+		;Manage returning a different ROW
+		;Boris idea in gitter
 		;Implement all fields of CTX-USER
 		;Standard extract mode
 		;Better manage false true none in WHERE condition
@@ -185,13 +189,13 @@ extract+: func [
 			bind row-proto-copy ctx	;--- It is needed at each recurrence
 			
 			row: reduce row-proto-copy 
-			
-			
+
+			sort/reverse to-delete			
 			
 			forall to-delete [
 				remove at row to-delete/1
 			]
-
+			
 			
 			either after [
 				if not user-code-bound? [
